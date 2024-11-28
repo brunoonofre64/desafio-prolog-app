@@ -120,11 +120,13 @@ decisões arquiteturais e implementações utilizadas:
 
 ### 3. Gestão de Mensagens e Erros
 
-Para manter a aplicação limpa e facilitar manutenções futuras, centralizei todas as mensagens de erro em um arquivo de properties dedicado.
+Para manter a aplicação limpa e facilitar manutenções futuras, centralizei todas as mensagens de erro em um arquivo de properties dedicado além da criação de um Handler pra tratar de forma concentrada e organizada os erros lançados pela API.
 
 - **Exemplo do arquivo** exception.properties encontrado dentro de **resources** na aplicação.
 
 - **Motivação:** Essa abordagem evita a repetição de mensagens e facilita alterações globais.
+- 
+- **Classe ApiExceptionHandler** é a responsável por tratar os erros lançados pela API.
 
 ***
 
