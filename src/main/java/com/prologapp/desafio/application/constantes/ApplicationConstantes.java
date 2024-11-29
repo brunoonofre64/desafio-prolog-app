@@ -17,7 +17,6 @@ public class ApplicationConstantes {
     public static final String OPCOES_STATUS = "O status deve ser 'ATIVO', 'INATIVO', 'MANUTENCAO' ou 'SUCATEADO'";
     public static final String NUMERO_FOGO_OBRIGATORIO = "O n\u00FAmero do fogo \u00E9 obrigat\u00F3rio.";
     public static final String PRESSAO_OBRIGATORIA = "A press\u00E3o atual \u00E9 obrigat\u00F3ria.";
-    public static final String PRESSAO_MINIMA = "0.01";
     public static final String POSICAO_PNEU_OBRIGATORIA = "A posi\u00E7\u00E3o do pneu \u00E9 obrigat\u00F3ria.";
     public static final String OPCOES_STATUS_PNEU = "O status deve ser uma das op\u00E7\u00F5es v\u00E1lidas - USADO, ESTOQUE, REFORMA, DESCARTADO";
     public static final String POSICOES_ACEITAS_PNEU = "As posi\u00E7\u00F5es que o pneu aceita s\u00E3o = A, B, C, D, E, F, G, H.";

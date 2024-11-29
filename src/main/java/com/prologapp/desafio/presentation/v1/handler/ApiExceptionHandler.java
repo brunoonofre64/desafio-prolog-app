@@ -1,5 +1,7 @@
 package com.prologapp.desafio.presentation.v1.handler;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.prologapp.desafio.domain.enums.PosicaoPneu;
 import com.prologapp.desafio.domain.enums.StatusVeiculo;
 import com.prologapp.desafio.presentation.v1.constantes.PresentationConstantes;
 import com.prologapp.desafio.application.exceptions.BusinessException;
@@ -129,14 +131,19 @@ public class ApiExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Problem> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         Throwable cause = ex.getCause();
-        if (cause instanceof com.fasterxml.jackson.databind.exc.InvalidFormatException invalidFormatException) {
+        if (cause instanceof InvalidFormatException invalidFormatException) {
             String fieldName = invalidFormatException.getPath().stream()
                     .map(reference -> reference.getFieldName())
                     .findFirst()
                     .orElse(PresentationConstantes.CAMPO_DESCONHECIDO);
 
             String rejectedValue = invalidFormatException.getValue().toString();
-            String validValues = Arrays.toString(StatusVeiculo.values());
+
+            String detailMessage = invalidFormatException.getOriginalMessage();
+
+            String validValues = detailMessage.contains("PosicaoPneu")
+                    ? Arrays.toString(PosicaoPneu.values())
+                    : Arrays.toString(StatusVeiculo.values());
 
             String errorMessage = String.format(PresentationConstantes.VALORES_ACEITOS_EM_STATUS,
                     fieldName, rejectedValue, validValues);
@@ -162,6 +169,7 @@ public class ApiExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
+
 
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<Problem> handleNullPointerException(NullPointerException ex) {

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prologapp.desafio.DesafioApiPrologAppApplication;
 import com.prologapp.desafio.application.dtos.PneuRequestDTO;
 import com.prologapp.desafio.application.dtos.VincularPneuDTO;
-import com.prologapp.desafio.constantes.TestesIntegracaoConstantes;
 import com.prologapp.desafio.domain.entities.PneuEntity;
 import com.prologapp.desafio.domain.entities.VeiculoEntity;
 import com.prologapp.desafio.domain.enums.PosicaoPneu;

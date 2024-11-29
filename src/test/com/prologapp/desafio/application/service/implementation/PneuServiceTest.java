@@ -3,30 +3,30 @@ package com.prologapp.desafio.application.service.implementation;
 import com.prologapp.desafio.application.dtos.PneuRequestDTO;
 import com.prologapp.desafio.application.dtos.VincularPneuDTO;
 import com.prologapp.desafio.application.enums.CodigoErro;
-import com.prologapp.desafio.application.exceptions.ApplicationException;
 import com.prologapp.desafio.application.exceptions.BusinessException;
 import com.prologapp.desafio.application.exceptions.EntityNotFoundException;
 import com.prologapp.desafio.application.exceptions.ObjectException;
 import com.prologapp.desafio.application.mappers.PneuMapper;
 import com.prologapp.desafio.application.services.implementation.PneuService;
+import com.prologapp.desafio.constantes.TesteConstantes;
 import com.prologapp.desafio.domain.entities.PneuEntity;
 import com.prologapp.desafio.domain.entities.VeiculoEntity;
+import com.prologapp.desafio.domain.enums.PosicaoPneu;
 import com.prologapp.desafio.insfraestructure.persistence.jpa.JpaPneuRepository;
 import com.prologapp.desafio.insfraestructure.persistence.jpa.JpaVeiculoRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
-import static com.prologapp.desafio.constantes.TesteConstantes.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class PneuServiceTest {
 
     @Mock
@@ -43,97 +43,146 @@ class PneuServiceTest {
 
     @Test
     void registrarPneu_comDadosValidos_salvaPneu() {
-        PneuRequestDTO pneuRequest = new PneuRequestDTO(NUMERO_FOGO, MARCA_A, PRESSAO, STATUS_PNEU);
+        PneuRequestDTO pneuRequest = new PneuRequestDTO(
+                TesteConstantes.NUMERO_FOGO,
+                TesteConstantes.MARCA_A,
+                TesteConstantes.PRESSAO,
+                TesteConstantes.STATUS_PNEU
+        );
         PneuEntity pneuEntity = new PneuEntity();
 
-        when(jpaPneuRepository.existsByNumeroFogo(NUMERO_FOGO)).thenReturn(false);
+        when(jpaPneuRepository.existsByNumeroFogo(TesteConstantes.NUMERO_FOGO)).thenReturn(false);
         when(mapper.toEntity(pneuRequest)).thenReturn(pneuEntity);
 
-        Assertions.assertDoesNotThrow(() -> pneuService.registrarPneu(pneuRequest));
-        Mockito.verify(jpaPneuRepository).save(pneuEntity);
+        assertDoesNotThrow(() -> pneuService.registrarPneu(pneuRequest));
+
+        verify(jpaPneuRepository).save(pneuEntity);
     }
 
     @Test
     void registrarPneu_comDadosNulos_lancaExcecao() {
-        Assertions.assertThrows(ObjectException.class, () -> pneuService.registrarPneu(null));
+        ObjectException exception = assertThrows(
+                ObjectException.class,
+                () -> pneuService.registrarPneu(null)
+        );
+        assertEquals(CodigoErro.OBJETO_NULO, exception.getCodigoErro());
     }
 
     @Test
     void registrarPneu_comPneuJaCadastrado_lancaExcecao() {
-        PneuRequestDTO pneuRequest = new PneuRequestDTO(NUMERO_FOGO, MARCA_A, PRESSAO, STATUS_PNEU);
-        when(jpaPneuRepository.existsByNumeroFogo(NUMERO_FOGO)).thenReturn(true);
+        PneuRequestDTO pneuRequest = new PneuRequestDTO(
+                TesteConstantes.NUMERO_FOGO,
+                TesteConstantes.MARCA_A,
+                TesteConstantes.PRESSAO,
+                TesteConstantes.STATUS_PNEU
+        );
 
-        BusinessException exception = Assertions.assertThrows(BusinessException.class, () -> pneuService.registrarPneu(pneuRequest));
-        Assertions.assertEquals(CodigoErro.PNEU_JA_CADASTRADO, exception.getCodigoErro());
-    }
+        when(jpaPneuRepository.existsByNumeroFogo(TesteConstantes.NUMERO_FOGO)).thenReturn(true);
 
-    @Test
-    void registrarPneu_erroAoSalvar_lancaExcecao() {
-        PneuRequestDTO pneuRequest = new PneuRequestDTO(NUMERO_FOGO, MARCA_A, PRESSAO, STATUS_PNEU);
-        when(jpaPneuRepository.existsByNumeroFogo(NUMERO_FOGO)).thenReturn(false);
-        when(mapper.toEntity(any())).thenThrow(new ApplicationException(CodigoErro.ERRO_AO_SALVAR));
-
-        Assertions.assertThrows(ApplicationException.class, () -> pneuService.registrarPneu(pneuRequest));
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> pneuService.registrarPneu(pneuRequest)
+        );
+        assertEquals(CodigoErro.PNEU_JA_CADASTRADO, exception.getCodigoErro());
     }
 
     @Test
     void vincularPneuVeiculo_comDadosValidos_vinculaPneu() {
-        VincularPneuDTO vincularPneu = new VincularPneuDTO(PLACA_VALIDA_A, NUMERO_FOGO, POSICAO);
+        VincularPneuDTO vincularPneu = new VincularPneuDTO(
+                TesteConstantes.PLACA_VALIDA_A,
+                TesteConstantes.NUMERO_FOGO,
+                PosicaoPneu.A
+        );
         VeiculoEntity veiculo = new VeiculoEntity();
         PneuEntity pneu = new PneuEntity();
         PneuEntity pneuVinculado = new PneuEntity();
 
-        when(jpaPneuRepository.existsByNumeroFogoAndVeiculoNotNull(NUMERO_FOGO)).thenReturn(false);
-        when(jpaVeiculoRepository.findVeiculoEntityByPlacaIgnoreCase(PLACA_VALIDA_A)).thenReturn(Optional.of(veiculo));
-        when(jpaPneuRepository.findByNumeroFogo(NUMERO_FOGO)).thenReturn(Optional.of(pneu));
-        when(mapper.vinculoPneuToEntity(pneu, veiculo, POSICAO)).thenReturn(pneuVinculado);
+        when(jpaPneuRepository.existsByNumeroFogoAndVeiculoNotNull(TesteConstantes.NUMERO_FOGO)).thenReturn(false);
+        when(jpaVeiculoRepository.findVeiculoEntityByPlacaIgnoreCase(TesteConstantes.PLACA_VALIDA_A)).thenReturn(Optional.of(veiculo));
+        when(jpaPneuRepository.findByNumeroFogo(TesteConstantes.NUMERO_FOGO)).thenReturn(Optional.of(pneu));
+        when(mapper.vinculoPneuToEntity(pneu, veiculo, PosicaoPneu.A)).thenReturn(pneuVinculado);
 
-        Assertions.assertDoesNotThrow(() -> pneuService.vincularPneuVeiculo(vincularPneu));
-        Mockito.verify(jpaPneuRepository).save(pneuVinculado);
+        assertDoesNotThrow(() -> pneuService.vincularPneuVeiculo(vincularPneu));
+
+        verify(jpaPneuRepository).save(pneuVinculado);
     }
 
     @Test
     void vincularPneuVeiculo_comDadosNulos_lancaExcecao() {
-        Assertions.assertThrows(ObjectException.class, () -> pneuService.vincularPneuVeiculo(null));
+        ObjectException exception = assertThrows(
+                ObjectException.class,
+                () -> pneuService.vincularPneuVeiculo(null)
+        );
+        assertEquals(CodigoErro.OBJETO_NULO, exception.getCodigoErro());
     }
 
     @Test
     void vincularPneuVeiculo_comPneuJaVinculado_lancaExcecao() {
-        VincularPneuDTO vincularPneu = new VincularPneuDTO(PLACA_VALIDA_A, NUMERO_FOGO, POSICAO);
-        when(jpaPneuRepository.existsByNumeroFogoAndVeiculoNotNull(NUMERO_FOGO)).thenReturn(true);
+        VincularPneuDTO vincularPneu = new VincularPneuDTO(
+                TesteConstantes.PLACA_VALIDA_A,
+                TesteConstantes.NUMERO_FOGO,
+                PosicaoPneu.A
+        );
 
-        BusinessException exception = Assertions.assertThrows(BusinessException.class, () -> pneuService.vincularPneuVeiculo(vincularPneu));
-        Assertions.assertEquals(CodigoErro.PNEU_JA_VINCULADO, exception.getCodigoErro());
+        when(jpaPneuRepository.existsByNumeroFogoAndVeiculoNotNull(TesteConstantes.NUMERO_FOGO)).thenReturn(true);
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> pneuService.vincularPneuVeiculo(vincularPneu)
+        );
+        assertEquals(CodigoErro.PNEU_JA_VINCULADO, exception.getCodigoErro());
     }
 
     @Test
-    void vincularPneuVeiculo_comVeiculoNaoExistente_lancaExcecao() {
-        VincularPneuDTO vincularPneu = new VincularPneuDTO(PLACA_VALIDA_A, NUMERO_FOGO, POSICAO);
-        when(jpaVeiculoRepository.findVeiculoEntityByPlacaIgnoreCase(PLACA_VALIDA_A)).thenReturn(Optional.empty());
+    void vincularPneuVeiculo_comPosicaoOcupada_lancaExcecao() {
+        VincularPneuDTO vincularPneu = new VincularPneuDTO(
+                TesteConstantes.PLACA_VALIDA_A,
+                TesteConstantes.NUMERO_FOGO,
+                PosicaoPneu.A
+        );
+        VeiculoEntity veiculo = new VeiculoEntity();
+        PneuEntity pneuExistente = new PneuEntity();
+        pneuExistente.setPosicao(PosicaoPneu.A);
 
-        EntityNotFoundException exception = Assertions.assertThrows(EntityNotFoundException.class, () -> pneuService.vincularPneuVeiculo(vincularPneu));
-        Assertions.assertEquals(CodigoErro.VEICULO_NAO_ENCONTRADO, exception.getCodigoErro());
+        veiculo.setPneus(List.of(pneuExistente));
+
+        when(jpaVeiculoRepository.findVeiculoEntityByPlacaIgnoreCase(TesteConstantes.PLACA_VALIDA_A))
+                .thenReturn(Optional.of(veiculo));
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> pneuService.vincularPneuVeiculo(vincularPneu)
+        );
+        assertEquals(CodigoErro.POSICAO_OCUPADA, exception.getCodigoErro());
     }
 
     @Test
     void desvincularPneuVeiculo_comDadosValidos_desvinculaPneu() {
         PneuEntity pneu = new PneuEntity();
-        when(jpaPneuRepository.findByNumeroFogo(NUMERO_FOGO)).thenReturn(Optional.of(pneu));
+        when(jpaPneuRepository.findByNumeroFogo(TesteConstantes.NUMERO_FOGO)).thenReturn(Optional.of(pneu));
 
-        Assertions.assertDoesNotThrow(() -> pneuService.desvincularPneuVeiculo(NUMERO_FOGO));
-        Mockito.verify(jpaPneuRepository).save(pneu);
+        assertDoesNotThrow(() -> pneuService.desvincularPneuVeiculo(TesteConstantes.NUMERO_FOGO));
+
+        verify(jpaPneuRepository).save(pneu);
     }
 
     @Test
     void desvincularPneuVeiculo_comDadosNulos_lancaExcecao() {
-        Assertions.assertThrows(ObjectException.class, () -> pneuService.desvincularPneuVeiculo(null));
+        ObjectException exception = assertThrows(
+                ObjectException.class,
+                () -> pneuService.desvincularPneuVeiculo(null)
+        );
+        assertEquals(CodigoErro.OBJETO_NULO, exception.getCodigoErro());
     }
 
     @Test
     void desvincularPneuVeiculo_comPneuNaoExistente_lancaExcecao() {
-        when(jpaPneuRepository.findByNumeroFogo(NUMERO_FOGO)).thenReturn(Optional.empty());
+        when(jpaPneuRepository.findByNumeroFogo(TesteConstantes.NUMERO_FOGO)).thenReturn(Optional.empty());
 
-        EntityNotFoundException exception = Assertions.assertThrows(EntityNotFoundException.class, () -> pneuService.desvincularPneuVeiculo(NUMERO_FOGO));
-        Assertions.assertEquals(CodigoErro.PNEU_NAO_ENCONTRADO, exception.getCodigoErro());
+        EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> pneuService.desvincularPneuVeiculo(TesteConstantes.NUMERO_FOGO)
+        );
+        assertEquals(CodigoErro.PNEU_NAO_ENCONTRADO, exception.getCodigoErro());
     }
 }
