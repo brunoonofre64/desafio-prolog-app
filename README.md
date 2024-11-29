@@ -43,6 +43,12 @@ execute o comando:
 
 **mvn spring-boot:run**
 
+### Se desejar conecar o postgres em um SGBD local usar o seguinte login.
+
+usuario | senha
+------- | -------
+prologapp | mecontrata
+
 ***
 
 #### 4 - Acessando a aplicação
