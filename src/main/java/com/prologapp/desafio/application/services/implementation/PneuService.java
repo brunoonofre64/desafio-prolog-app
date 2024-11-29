@@ -64,7 +64,7 @@ public class PneuService implements IPneuService {
         this.validaPosicaoDisponivel(vincularPneu, veiculo);
 
         PneuEntity pneu = jpaPneuRepository.findByNumeroFogo(numeroFogo)
-                .orElseThrow(() -> new EntityNotFoundException(CodigoErro.PNEU_NAO_ENCONTRADO));
+                .orElseThrow(() -> new EntityNotFoundException(CodigoErro.PNEU_NAO_ENCONTRADO, numeroFogo));
 
         PosicaoPneu posicaoPneu = vincularPneu.getPosicao();
         try {
